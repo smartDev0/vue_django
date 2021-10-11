@@ -5,11 +5,7 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
     integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
   <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <script>
-    axios.defaults.xsrfCookieName = 'csrftoken';
-    axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
-  </script>
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
   <title>Vue</title>
 </head>
 
@@ -42,7 +38,7 @@
           All tweets
         </div>
         <div class="card-body">
-          <table class="table table-striped">
+          <table class="table table-striped" id="tweetTable">
             <thead>
               <tr>
                 <th scope="col">#</th>
@@ -51,8 +47,8 @@
                 <th scope="col">date</th>
               </tr>
             </thead>
-            <tbody v-if="flag">
-              <tr v-for="(data, index) in tweets" :key="index">
+            <tbody>
+              <tr v-for="(data, index) in this.tweets" :key="index">
                 <th scope="row" v-html="index+1"></th>
                 <td v-html="data.Name"></td>
                 <td v-html="data.Description"></td>
@@ -71,7 +67,7 @@
       data: {
         name: "",
         description: "",
-        url: '/tweet',
+        url: 'http://localhost:8000/tweet',
         tweets: [],
         flag: false
       },
@@ -86,51 +82,62 @@
             Name: this.name,
             Description: this.description
           }
-
-          axios
-            .post(this.url, JSON.stringify(payload))
-            .then(response => {
+          $.ajax({
+            type: 'POST',
+            url: this.url,
+            data: JSON.stringify(payload),
+            dataType: 'json',
+            success: function (data) {
               this.onGettingData()
-            })
-            .catch(error => {
-              console.log(error);
-            });
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+              alert("Error");
+            }
+          });
         },
         async onGettingData() {
-          axios
-            .get(this.url)
-            .then(response => {
-              this.tweets = response.data
-              this.tweets.sort(function (a, b) { return new Date(a.DateOfJoining) - new Date(b.DateOfJoining) });
-              this.flag = true
-            })
-            .catch(error => {
-              console.log(error);
-            });
+          $.ajax({
+            type: 'GET',
+            url: this.url,
+          }).done(function (data) {
+            data.sort(function (a, b) { return new Date(a.DateOfJoining) - new Date(b.DateOfJoining) })
+            console.log(data)
+            var content = '';
+            var no
+            //content += '<tbody>'; -- **superfluous**
+            for (var i = 0; i < data.length; i++) {
+              no = i + 1
+              content += '<tr>';
+              content += '<td>' + no + '</td>';
+              content += '<td>' + data[i].Name + '</td>';
+              content += '<td>' + data[i].Description + '</td>';
+              content += '<td>' + formatDate(data[i].DateOfJoining) + '</td>';
+              content += '</tr>';
+            }
+
+            $('#tweetTable tbody').html(content);
+
+          });
         },
-
-        formatDate(date) {
-          var d = new Date(date),
-            month = '' + (d.getMonth() + 1),
-            day = '' + d.getDate(),
-            year = d.getFullYear();
-
-          if (month.length < 2)
-            month = '0' + month;
-          if (day.length < 2)
-            day = '0' + day;
-
-          return [year, month, day].join('-');
-        }
-
       }
     });
+
+    function formatDate(date) {
+      var d = new Date(date),
+        month = '' + (d.getMonth() + 1),
+        day = '' + d.getDate(),
+        year = d.getFullYear();
+
+      if (month.length < 2)
+        month = '0' + month;
+      if (day.length < 2)
+        day = '0' + day;
+
+      return [year, month, day].join('-');
+    }
   </script>
 
   <script src="//unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
-  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-    integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-    crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
     integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
     crossorigin="anonymous"></script>
