@@ -1,0 +1,142 @@
+<html>
+
+<head>
+  <!-- development version, includes helpful console warnings -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script>
+    axios.defaults.xsrfCookieName = 'csrftoken';
+    axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
+  </script>
+  <title>Vue</title>
+</head>
+
+<body>
+  <div id="vue-app">
+    <div class="container">
+      <br />
+      <div class="card">
+        <div class="card-header">
+          Add tweet
+        </div>
+        <div class="card-body">
+          <form @submit="onSubmit">
+            <div class="form-group">
+              <label for="exampleInputName">Name</label>
+              <input type="text" class="form-control" id="exampleInputName" placeholder="name" v-model="name" required>
+            </div>
+            <div class="form-group">
+              <label for="exampleInputDescription">Description</label>
+              <textarea type="password" class="form-control" id="exampleInputDescription" v-model="description"
+                placeholder="description" maxlength ="50" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+        </div>
+      </div>
+      <br />
+      <div class="card">
+        <div class="card-header">
+          All tweets
+        </div>
+        <div class="card-body">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">name</th>
+                <th scope="col">description</th>
+                <th scope="col">date</th>
+              </tr>
+            </thead>
+            <tbody v-if="flag">
+              <tr v-for="(data, index) in tweets" :key="index">
+                <th scope="row" v-html="index+1"></th>
+                <td v-html="data.Name"></td>
+                <td v-html="data.Description"></td>
+                <td v-html="formatDate(data.DateOfJoining)"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    let app = new Vue({
+      el: "#vue-app",
+      data: {
+        name: "",
+        description: "",
+        url: '/employee',
+        tweets: [],
+        flag: false
+      },
+      async created() {
+        this.onGettingData()
+      },
+      methods: {
+        async onSubmit(event) {
+          event.preventDefault()
+
+          const payload = {
+            Name: this.name,
+            Description: this.description
+          }
+
+          axios
+            .post(this.url, JSON.stringify(payload))
+            .then(response => {
+              this.onGettingData()
+            })
+            .catch(error => {
+              console.log(error);
+            });
+        },
+        async onGettingData() {
+          axios
+            .get(this.url)
+            .then(response => {
+              this.tweets = response.data
+              this.flag = true
+            })
+            .catch(error => {
+              console.log(error);
+            });
+        },
+
+        formatDate(date) {
+          var d = new Date(date),
+            month = '' + (d.getMonth() + 1),
+            day = '' + d.getDate(),
+            year = d.getFullYear();
+
+          if (month.length < 2)
+            month = '0' + month;
+          if (day.length < 2)
+            day = '0' + day;
+
+          return [year, month, day].join('-');
+        }
+
+      }
+    });
+  </script>
+
+  <script src="//unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+    integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+    integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+    crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script>
+
+</body>
+
+</html>
