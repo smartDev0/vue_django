@@ -30,7 +30,7 @@
             <div class="form-group">
               <label for="exampleInputDescription">Description</label>
               <textarea type="password" class="form-control" id="exampleInputDescription" v-model="description"
-                placeholder="description" maxlength ="50" required></textarea>
+                placeholder="description" maxlength="50" required></textarea>
             </div>
             <button type="submit" class="btn btn-primary">Submit</button>
           </form>
@@ -101,6 +101,7 @@
             .get(this.url)
             .then(response => {
               this.tweets = response.data
+              this.tweets.sort(function (a, b) { return new Date(a.DateOfJoining) - new Date(b.DateOfJoining) });
               this.flag = true
             })
             .catch(error => {
